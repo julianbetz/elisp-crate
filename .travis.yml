@@ -1,0 +1,17 @@
+language: generic
+
+os: linux
+dist: xenial
+
+env:
+  jobs:
+    - EMACS_VERSION=25.3
+  
+install:
+  - curl -fsSL --retry 9 --retry-delay 10 -O "https://github.com/npostavs/emacs-travis/releases/download/bins/emacs-bin-${EMACS_VERSION}.tar.gz"
+  - tar -xzf emacs-bin-${EMACS_VERSION}.tar.gz -C /
+  - export PATH=/tmp/emacs/bin:${PATH}
+  - emacs --version
+
+script:
+  - make test

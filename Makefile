@@ -16,7 +16,7 @@
 # ==============================================================================
 
 
-.PHONY: help
+.PHONY: help test
 .DEFAULT_GOAL := help
 
 
@@ -38,3 +38,11 @@
 help:
 	@sed -e '/^###\($$\|[^#]\)/,/^$$\|^[^#]\|^#[^#]\|^##[^#]/!d' $(MAKEFILE_LIST) | sed 's/^\($$\|[^#].*$$\|#[^#].*$$\|##[^#].*$$\)//' | sed 's/^### *//' | sed 's/  / /'
 	@grep -E '^##[^#]' -A 1 $(MAKEFILE_LIST) | sed 's/^\([^ #][^ ]*\):\($$\| .*$$\)/\1/' | awk 'BEGIN {RS = "\n--\n"; FS = "\n"}; {sub(/^## */, "", $$1); printf "\033[32m%-19s\033[0m %s\n", $$2, $$1}'
+
+
+# Unit tests
+# ------------------------------------------------------------------------------
+
+## Perform unit tests
+test:
+	@emacs -Q --batch -L . -l test/test-everything.el --eval '(progn (require `cl) (assert t))'
