@@ -1,4 +1,4 @@
-;;; test-everything.el --- Crate unit tests -*- coding: utf-8; lexical-binding: t -*-
+;;; test-everything.el --- Unit tests for crate -*- coding: utf-8; lexical-binding: t -*-
 
 ;; Copyright (C) 2020 Julian Betz
 
@@ -6,7 +6,7 @@
 ;; Created: 2020-08-07
 ;; URL: https://github.com/julianbetz/elisp-crate
 
-;; This file is not part of GNU Emacs.
+;; This file is NOT part of GNU Emacs.
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.

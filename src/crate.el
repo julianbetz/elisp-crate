@@ -3,13 +3,13 @@
 ;; Copyright (C) 2020 Julian Betz
 
 ;; Author: Julian Betz
-;; Package-Version: 0.0
+;; Package-Version: 0.0.0
 ;; Created: 2020-08-07
 ;; Package-Requires: ((emacs "24.1"))
 ;; Keywords: extensions
 ;; URL: https://github.com/julianbetz/elisp-crate
 
-;; This file is not part of GNU Emacs.
+;; This file is NOT part of GNU Emacs.
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
