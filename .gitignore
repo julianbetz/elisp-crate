@@ -1,0 +1,19 @@
+## Make
+
+**/.make/*
+
+
+## Emacs
+
+# Autosave files
+**/.#*
+# Personalized project settings
+.dir-locals.el
+
+
+reports/clock.org
+
+
+## Git
+
+!**/.gitkeep
