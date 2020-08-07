@@ -45,4 +45,4 @@ help:
 
 ## Perform unit tests
 test:
-	@emacs -Q --batch -L . -l test/test-everything.el --eval '(progn (require `cl) (assert t))'
+	@emacs -Q --batch -L . -l test/test-everything.el --eval '(progn (require `cl) (assert nil))'
