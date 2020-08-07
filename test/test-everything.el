@@ -23,7 +23,9 @@
 
 ;;; Code:
 
-()
+(ert-deftest crate-test ()
+  "Mock test."
+  (should (equal t t)))
 
 
 ;;; test-everything.el ends here
