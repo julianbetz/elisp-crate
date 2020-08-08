@@ -18,7 +18,11 @@ jobs:
 install:
   - curl -fsSL --retry 9 --retry-delay 15 -O "https://github.com/npostavs/emacs-travis/releases/download/bins/emacs-bin-${EMACS_VERSION}.tar.gz"
   - tar -xzf emacs-bin-${EMACS_VERSION}.tar.gz -C /
-  - export PATH=/tmp/emacs/bin:${PATH}  
+  - export PATH=/tmp/emacs/bin:${PATH}
+  # If missing, install cl-lib (introduced in Emacs 24.3)
+  - if ! emacs -Q --batch --eval "(require 'cl-lib)" ; then
+        curl -Lo cl-lib.el "http://elpa.gnu.org/packages/cl-lib-0.6.1.el" ;
+    fi
   - emacs --version
 
 script:
