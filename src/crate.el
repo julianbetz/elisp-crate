@@ -26,6 +26,9 @@
 
 ;;; Code:
 
+(require 'eieio)
+
+
 (cl-defmethod crate-to-str (this)
   (object-print this))
 
