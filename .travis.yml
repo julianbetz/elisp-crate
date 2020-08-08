@@ -5,7 +5,7 @@ dist: xenial
 
 env:
   jobs:
-    - EMACS_VERSION=24.3
+    - EMACS_VERSION=24.5
     - EMACS_VERSION=25.1
     - EMACS_VERSION=25.2
     - EMACS_VERSION=26.1
