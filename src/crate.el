@@ -3,13 +3,13 @@
 ;; Copyright (C) 2020 Julian Betz
 
 ;; Author: Julian Betz
-;; Package-Version: 0.0
+;; Package-Version: 0.0.0
 ;; Created: 2020-08-07
-;; Package-Requires: ((emacs "25.2"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: extensions
 ;; URL: https://github.com/julianbetz/elisp-crate
 
-;; This file is not part of GNU Emacs.
+;; This file is NOT part of GNU Emacs.
 
 ;; Licensed under the Apache License, Version 2.0 (the "License");
 ;; you may not use this file except in compliance with the License.
@@ -25,6 +25,104 @@
 
 
 ;;; Code:
+
+(require 'cl)
+(require 'eieio)
+
+
+(cl-defmethod crate-to-str (this)
+  (object-print this))
+
+
+(defclass crate-list-element ()
+  ((prev :initarg :prev
+         :initform nil
+         :type (or crate-list-element null)
+         :documentation "The previous linked list element.")
+   (data :initarg :data
+         :initform nil
+         :type t
+         :documentation "Satellite data.")
+   (next :initarg :next
+         :initform nil
+         :type (or crate-list-element null)
+         :documentation "The next linked list element."))
+  "An element of a doubly linked list.")
+
+(cl-defmethod crate--prepend ((this crate-list-element) &optional data)
+  (let ((element (crate-list-element
+                  :prev (oref this prev)
+                  :data data
+                  :next this)))
+    (when (oref this prev)
+      (oset (oref this prev) next element))
+    (oset this prev element)))
+
+(cl-defmethod crate--append ((this crate-list-element) &optional data)
+  (let ((element (crate-list-element
+                  :prev this
+                  :data data
+                  :next (oref this next))))
+    (when (oref this next)
+      (oset (oref this next) prev element))
+    (oset this next element)))
+
+(cl-defmethod crate--remove ((this crate-list-element))
+  (when (oref this prev)
+    (oset (oref this prev) next (oref this next)))
+  (when (oref this next)
+    (oset (oref this next) prev (oref this prev)))
+  (oset this prev nil)
+  (oset this next nil)
+  this)
+
+
+;; Doubly linked list
+
+(defclass crate-linked-list (crate-list-element) () "A doubly linked list.")
+
+(cl-defmethod initialize-instance ((this crate-linked-list) &optional slots)
+  ;; XXX Maybe discouraging of constructor elements can be done more naturally
+  (loop for slot in slots
+        for i from 0
+        do (when (and (evenp i) (member slot '(:prev :data :next)))
+             (error "Linked list cannot be initialized with keyword %S" slot)))
+  (oset this prev this)
+  (oset this next this))
+
+(cl-defmethod crate-empty-p ((this crate-linked-list))
+  (eq (oref this next) this))
+
+(cl-defmethod crate-enqueue ((this crate-linked-list) &optional data)
+  "Add an element to the tail of the list."
+  (crate--prepend this data)
+  nil)
+
+(cl-defmethod crate-push ((this crate-linked-list) &optional data)
+  "Add an element to the head of the list."
+  (crate--append this data)
+  nil)
+
+(cl-defmethod crate-prune ((this crate-linked-list))
+  "Remove and return the last element of the list."
+  (if (crate-empty-p this)
+      (error "List empty")
+    (oref (crate--remove (oref this prev)) data)))
+
+(cl-defmethod crate-pop ((this crate-linked-list))
+  "Remove and return the first element of the list."
+  (if (crate-empty-p this)
+      (error "List empty")
+    (oref (crate--remove (oref this next)) data)))
+
+(cl-defmethod crate-clear ((this crate-linked-list))
+  "Remove all elements from this list.
+
+Breaks the links between all elements."
+  (while (not (crate-empty-p this))
+    (crate-pop this))
+  nil)
+
 
 (provide 'crate)
 
