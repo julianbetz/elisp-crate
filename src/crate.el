@@ -5,7 +5,7 @@
 ;; Author: Julian Betz
 ;; Package-Version: 0.0.0
 ;; Created: 2020-08-07
-;; Package-Requires: ((emacs "24.5") (cl-lib "0.6.1") eieio ert)
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: extensions
 ;; URL: https://github.com/julianbetz/elisp-crate
 
@@ -26,7 +26,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
+(require 'cl)
 (require 'eieio)
 
 

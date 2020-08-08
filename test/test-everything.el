@@ -23,7 +23,6 @@
 
 ;;; Code:
 
-(require 'cl)
 (require 'crate)
 
 
