@@ -122,7 +122,7 @@ Values are chosen arbitrarily or pseudo-randomly."
     (should (null (oref (oref e next) next)))))
 
 
-(ert-deftest crate-test-remove-individual ()
+(ert-deftest crate-test-remove-free ()
   "Test removing a list element without any connected elements."
   (let* ((a (gensym)) (e (crate-list-element :data a)))
     (crate--remove e)
@@ -132,7 +132,7 @@ Values are chosen arbitrarily or pseudo-randomly."
     (should (null (oref e next)))))
 
 
-(ert-deftest crate-test-remove-last-in-ring ()
+(ert-deftest crate-test-remove-singleton-in-ring ()
   "Test removing a list element connected only to itself."
   (let* ((a (gensym)) (e (crate-list-element :data a)))
     (oset e prev e)
