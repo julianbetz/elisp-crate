@@ -3,7 +3,7 @@
 ;; Copyright (C) 2020 Julian Betz
 
 ;; Author: Julian Betz
-;; Package-Version: 0.0.0
+;; Package-Version: 0.1.alpha1
 ;; Created: 2020-08-07
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: extensions
