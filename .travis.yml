@@ -21,7 +21,7 @@ install:
   - export PATH=/tmp/emacs/bin:${PATH}
   # If missing, install cl-lib (introduced in Emacs 24.3)
   - if ! emacs -Q --batch --eval "(require 'cl-lib)" ; then
-        curl -Lo cl-lib.el "http://elpa.gnu.org/packages/cl-lib-0.6.1.el" ;
+        curl -fsSL --retry 9 --retry-delay 15 -o src/cl-lib.el "http://elpa.gnu.org/packages/cl-lib-0.6.1.el" ;
     fi
   - emacs --version
 
