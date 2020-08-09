@@ -30,9 +30,12 @@
 (require 'eieio)
 
 
-(cl-defmethod crate-to-str (this)
+(cl-defmethod crate-stringify (this)
   (object-print this))
 
+
+;; List element
+;; -----------------------------------------------------------------------------
 
 (defclass crate-list-element ()
   ((prev :initarg :prev
@@ -81,6 +84,7 @@
 
 
 ;; Doubly linked list
+;; -----------------------------------------------------------------------------
 
 (defclass crate-linked-list (crate-list-element) () "A doubly linked list.")
 
@@ -135,6 +139,7 @@ Breaks the links between all elements."
 
 
 ;; Length-restricted list
+;; -----------------------------------------------------------------------------
 
 (defclass crate-limited-list (crate-linked-list)
   ((max-length :initarg :max-length
@@ -185,6 +190,102 @@ Drops elements once its maximum length is reached.")
       (crate-pop this))
     (oset this length (1+ (oref this length)))
     (cl-call-next-method)))
+
+
+;; List iterator
+;; -----------------------------------------------------------------------------
+
+(defclass crate-list-iterator ()
+  ((collection :initarg :collection
+               :type crate-linked-list
+               :documentation "The containing data structure.")
+   (pos :type crate-list-element
+        :documentation "The current list position.")
+   (direction :initform t
+              :type boolean
+              :documentation "The direction of last movement (forward: t)."))
+  "A list iterator.")
+
+
+(cl-defmethod initialize-instance :before ((this crate-list-iterator) &optional slots)
+              (unless (plist-member slots :collection)
+                (error "Parameter %S required" :collection)))
+
+
+(cl-defmethod initialize-instance :after ((this crate-list-iterator) &optional slots)
+              (oset this pos (oref this collection)))
+
+
+(cl-defmethod crate-empty-p ((this crate-list-iterator))
+  (crate-empty-p (oref this collection)))
+
+
+(cl-defmethod crate-at-fringe-p ((this crate-list-iterator))
+  (eq (oref this pos) (oref this collection)))
+
+
+(cl-defmethod crate-has-previous-p ((this crate-list-iterator))
+  (not (eq (oref (oref this pos) prev) (oref this collection))))
+
+
+(cl-defmethod crate-has-next-p ((this crate-list-iterator))
+  (not (eq (oref (oref this pos) next) (oref this collection))))
+
+
+(cl-defmethod crate-get-data ((this crate-list-iterator))
+  (when (crate-at-fringe-p this)
+    (error "Unable to access data outside the list"))
+  (oref (oref this pos) data))
+
+
+(cl-defmethod crate-set-data ((this crate-list-iterator) data)
+  "Set the satellite data at the current position to DATA and return DATA."
+  (when (crate-at-fringe-p this)
+    (error "Unable to acess data outside the list"))
+  (oset (oref this pos) data data))
+
+
+(cl-defmethod crate-get-element ((this crate-list-iterator))
+  "Return the current list element."
+  (oref this pos))
+
+
+(cl-defmethod crate-regress ((this crate-list-iterator))
+  (oset this direction nil)
+  (let ((current (oset this pos (oref (oref this pos) prev))))
+    (when (eq current (oref this collection))
+      (error "Reached start of list"))
+    (oref current data)))
+
+
+(cl-defmethod crate-advance ((this crate-list-iterator))
+  (oset this direction t)
+  (let ((current (oset this pos (oref (oref this pos) next))))
+    (when (eq current (oref this collection))
+      (error "Reached end of list"))
+    (oref current data)))
+
+
+(cl-defmethod crate-stringify ((this crate-list-iterator))
+  (loop with p = (oref (oref this collection) next)
+        initially (setq s (if (and (crate-at-fringe-p this)
+                                   (oref this direction))
+                              "[> "
+                            "["))
+        until (eq p (oref this collection))
+        concat (concat (format (if (eq p (oref this pos))
+                                   (if (oref this direction)
+                                       "{%S}>"
+                                     "<{%S}")
+                                 "%S")
+                               (oref p data))
+                       (unless (eq (oref p next) (oref this collection)) " "))
+        into s
+        do (setq p (oref p next))
+        finally return (concat s (if (and (crate-at-fringe-p this)
+                                          (not (oref this direction)))
+                                     " <]"
+                                   "]"))))
 
 
 (provide 'crate)
