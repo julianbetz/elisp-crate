@@ -41,8 +41,9 @@ Values are chosen arbitrarily or pseudo-randomly."
 ;; List element
 ;; -----------------------------------------------------------------------------
 
-(ert-deftest crate-test-create-list-element ()
+(ert-deftest crate-test-list-element-initialize-instance ()
   "Test creating a list element."
+  (should (child-of-class-p 'crate-linked-list 'crate-list-element))
   (let ((e (crate-list-element)))
     (should (crate-list-element-p e))
     (should (null (oref e prev)))
@@ -75,7 +76,7 @@ Values are chosen arbitrarily or pseudo-randomly."
 
 ;; List element: prepend
 
-(ert-deftest crate-test-prepend-empty ()
+(ert-deftest crate-test-list-element-prepend-empty ()
   "Test prepending an empty element to another element."
   (let* ((a (gensym)) (e (crate-list-element :data a)) (f (crate--prepend e)))
     (should (eq f (oref e prev)))
@@ -88,7 +89,7 @@ Values are chosen arbitrarily or pseudo-randomly."
     (should (eq (oref (oref e prev) next) e))))
 
 
-(ert-deftest crate-test-prepend-data ()
+(ert-deftest crate-test-list-element-prepend-data ()
   "Test prepending an element with satellite data to another element."
   (let* ((a (gensym)) (b (gensym))
          (e (crate-list-element :data a)) (f (crate--prepend e b)))
@@ -104,7 +105,7 @@ Values are chosen arbitrarily or pseudo-randomly."
 
 ;; List element: append
 
-(ert-deftest crate-test-append-empty ()
+(ert-deftest crate-test-list-element-append-empty ()
   "Test appending an empty element to another element."
   (let* ((a (gensym)) (e (crate-list-element :data a)) (f (crate--append e)))
     (should (eq f (oref e next)))
@@ -117,7 +118,7 @@ Values are chosen arbitrarily or pseudo-randomly."
     (should (null (oref (oref e next) next)))))
 
 
-(ert-deftest crate-test-append-data ()
+(ert-deftest crate-test-list-element-append-data ()
   "Test appending an element with satellite data to another element."
   (let* ((a (gensym)) (b (gensym))
          (e (crate-list-element :data a)) (f (crate--append e b)))
@@ -133,7 +134,7 @@ Values are chosen arbitrarily or pseudo-randomly."
 
 ;; List element: remove
 
-(ert-deftest crate-test-remove-free ()
+(ert-deftest crate-test-list-element-remove-free ()
   "Test removing a list element without any connected elements."
   (let* ((a (gensym)) (e (crate-list-element :data a)))
     (should (eq (crate--remove e) e))
@@ -143,7 +144,7 @@ Values are chosen arbitrarily or pseudo-randomly."
     (should (null (oref e next)))))
 
 
-(ert-deftest crate-test-remove-singleton-in-ring ()
+(ert-deftest crate-test-list-element-remove-singleton-in-ring ()
   "Test removing a list element connected only to itself."
   (let* ((a (gensym)) (e (crate-list-element :data a)))
     (oset e prev e)
@@ -155,7 +156,7 @@ Values are chosen arbitrarily or pseudo-randomly."
     (should (null (oref e next)))))
 
 
-(ert-deftest crate-test-remove-among ()
+(ert-deftest crate-test-list-element-remove-among ()
   "Test removing a list element surrounded by others."
   (let* ((a (gensym)) (b (gensym)) (c (gensym))
          f g (h (crate-list-element :data b)) i j)
@@ -179,7 +180,7 @@ Values are chosen arbitrarily or pseudo-randomly."
     (should (eq (oref i next) j))))
 
 
-(ert-deftest crate-test-remove-head ()
+(ert-deftest crate-test-list-element-remove-head ()
   "Test removing the first element."
   (let* ((a (gensym)) (b (gensym))
          g (h (crate-list-element :data b)) i)
@@ -197,7 +198,7 @@ Values are chosen arbitrarily or pseudo-randomly."
     (should (eq (oref h next) i))))
 
 
-(ert-deftest crate-test-remove-tail ()
+(ert-deftest crate-test-list-element-remove-tail ()
   "Test removing the last element."
   (let* ((a (gensym)) (b (gensym))
          g (h (crate-list-element :data a)) i)
@@ -221,7 +222,7 @@ Values are chosen arbitrarily or pseudo-randomly."
 ;; All cases for empty-p are covered in the tests for instance initialization,
 ;; enqueue, push, prune, pop and clear.
 
-(ert-deftest crate-test-create-linked-list ()
+(ert-deftest crate-test-linked-list-initialize-instance ()
   "Test creating a doubly linked list."
   (let ((l (crate-linked-list)))
     (should (crate-linked-list-p l))
@@ -242,7 +243,8 @@ thus has a length of 1."
   (should-not (crate-empty-p l))
   (should (eq (oref l prev) (oref l next)))
   (should-not (eq (oref l prev) l))
-  (should (eq (oref (oref l prev) prev) l)))
+  (should (eq (oref (oref l prev) prev) l))
+  (should (eq (oref (oref l next) next) l)))
 
 
 (defun crate-test--list-pair-p (l)
@@ -346,6 +348,12 @@ thus has a length of 2."
 
 ;; Doubly linked list: prune
 
+(ert-deftest crate-test-linked-list-prune-0 ()
+  "Test removing the last element of a list of length 0."
+  (let ((l (crate-linked-list)))
+    (should-error (crate-prune l))))
+
+
 (ert-deftest crate-test-linked-list-prune-1 ()
   "Test removing the last element of a list of length 1."
   (let ((a (gensym)) (l (crate-linked-list)))
@@ -381,6 +389,13 @@ thus has a length of 2."
 
 
 ;; Doubly linked list: pop
+
+
+(ert-deftest crate-test-linked-list-pop-0 ()
+  "Test removing the first element of a list of length 0."
+  (let ((l (crate-linked-list)))
+    (should-error (crate-pop l))))
+
 
 (ert-deftest crate-test-linked-list-pop-1 ()
   "Test removing the first element of a list of length 1."
@@ -479,6 +494,488 @@ thus has a length of 2."
                (should (null (oref j prev)))
                (should (eq (oref j data) i))
                (should (null (oref j next)))))))
+
+
+;; Length-restricted list
+;; -----------------------------------------------------------------------------
+
+(ert-deftest crate-test-limited-list-initialize-instance ()
+  "Test creating a length-restricted doubly linked list."
+  ;; Test class hierarchy
+  (should (child-of-class-p 'crate-limited-list 'crate-linked-list))
+  ;; Test w/o arguments
+  (let ((l (crate-limited-list)))
+    (should (crate-limited-list-p l))
+    (should (crate-empty-p l))
+    (should (crate-full-p l))
+    (should (= (oref l max-length) 0))
+    (should (= (oref l length) 0)))
+  ;; Test with valid values for max-length, and whether length is always 0
+  (dolist (max-length `(0 1 2 10 100 1000 ,most-positive-fixnum))
+    (dolist (length `(0 1 2 10 100 1000 ,most-positive-fixnum))
+      (let ((l (crate-limited-list :max-length max-length :length length)))
+        (should (crate-limited-list-p l))
+        (should (crate-empty-p l))
+        (if (= max-length 0)
+            (should (crate-full-p l))
+          (should-not (crate-full-p l)))
+        (should (= (oref l max-length) max-length))
+        (should (= (oref l length) 0)))))
+  ;; Test with invalid values for max-length
+  (dolist (data (cons (crate-test--generate-list)
+                      (crate-test--generate-basic-values)))
+    (unless (integerp data)
+      (should-error (crate-limited-list :max-length data))))
+  (should-error (crate-limited-list :max-length (- -1 (random 1000))))
+  ;; Test with discouraged keywords
+  (should-error (crate-limited-list :prev (gensym)))
+  (should-error (crate-limited-list :data (gensym)))
+  (should-error (crate-limited-list :next (gensym))))
+
+
+;; Length-restricted list: enqueue
+
+(ert-deftest crate-test-limited-list-enqueue-0-0 ()
+  "Test adding to the back of a full list of length 0."
+  ;; Test without data
+  (let ((l (crate-limited-list)))
+    (should (null (crate-enqueue l)))
+    (should (crate-empty-p l))
+    (should (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should (eq (oref l prev) l))
+    (should (eq (oref l next) l)))
+  ;; Test with actual data
+  (let ((a (gensym)) (l (crate-limited-list)))
+    (should (null (crate-enqueue l a)))
+    (should (crate-empty-p l))
+    (should (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should (eq (oref l prev) l))
+    (should (eq (oref l next) l))))
+
+
+(ert-deftest crate-test-limited-list-enqueue-0-1 ()
+  "Test adding to the back of an almost-full list of length 0."
+  ;; Test without data
+  (let ((l (crate-limited-list :max-length 1)))
+    (should (null (crate-enqueue l)))
+    (crate-test--list-singleton-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (null (oref (oref l next) data))))
+  ;; Test with actual data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 1)))
+    (should (null (crate-enqueue l a)))
+    (crate-test--list-singleton-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (oref (oref l next) data) a))))
+
+
+(ert-deftest crate-test-limited-list-enqueue-0-100 ()
+  "Test adding to the back of a vacant list of length 0."
+  ;; Test without data
+  (let ((l (crate-limited-list :max-length 100)))
+    (should (null (crate-enqueue l)))
+    (crate-test--list-singleton-p l)
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (null (oref (oref l next) data))))
+  ;; Test with actual data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 100)))
+    (should (null (crate-enqueue l a)))
+    (crate-test--list-singleton-p l)
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (oref (oref l next) data) a))))
+
+
+(ert-deftest crate-test-limited-list-enqueue-1-1 ()
+  "Test adding to the back of a full list of length 1."
+  ;; Test without data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 1)))
+    (crate-enqueue l a)
+    (should (null (crate-enqueue l)))
+    (crate-test--list-singleton-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (null (oref (oref l next) data))))
+  ;; Test with actual data
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 1)))
+    (crate-enqueue l a)
+    (should (null (crate-enqueue l b)))
+    (crate-test--list-singleton-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (oref (oref l next) data) b))))
+
+
+(ert-deftest crate-test-limited-list-enqueue-1-2 ()
+  "Test adding to the back of an almost-full list of length 1."
+  ;; Test without data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 2)))
+    (crate-enqueue l a)
+    (should (null (crate-enqueue l)))
+    (crate-test--list-pair-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 2))
+    (should (eq (oref (oref l next) data) a))
+    (should (null (oref (oref l prev) data))))
+  ;; Test with actual data
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 2)))
+    (crate-enqueue l a)
+    (should (null (crate-enqueue l b)))
+    (crate-test--list-pair-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 2))
+    (should (eq (oref (oref l next) data) a))
+    (should (eq (oref (oref l prev) data) b))))
+
+
+(ert-deftest crate-test-limited-list-enqueue-1-100 ()
+  "Test adding to the back of a vacant list of length 1."
+  ;; Test without data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 100)))
+    (crate-enqueue l a)
+    (should (null (crate-enqueue l)))
+    (crate-test--list-pair-p l)
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 2))
+    (should (eq (oref (oref l next) data) a))
+    (should (null (oref (oref l prev) data))))
+  ;; Test with actual data
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 100)))
+    (crate-enqueue l a)
+    (should (null (crate-enqueue l b)))
+    (crate-test--list-pair-p l)
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 2))
+    (should (eq (oref (oref l next) data) a))
+    (should (eq (oref (oref l prev) data) b))))
+
+
+;; Length-restricted list: push
+
+(ert-deftest crate-test-limited-list-push-0-0 ()
+  "Test adding to the front of a full list of length 0."
+  ;; Test without data
+  (let ((l (crate-limited-list)))
+    (should (null (crate-push l)))
+    (should (crate-empty-p l))
+    (should (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should (eq (oref l prev) l))
+    (should (eq (oref l next) l)))
+  ;; Test with actual data
+  (let ((a (gensym)) (l (crate-limited-list)))
+    (should (null (crate-push l a)))
+    (should (crate-empty-p l))
+    (should (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should (eq (oref l prev) l))
+    (should (eq (oref l next) l))))
+
+
+(ert-deftest crate-test-limited-list-push-0-1 ()
+  "Test adding to the front of an almost-full list of length 0."
+  ;; Test without data
+  (let ((l (crate-limited-list :max-length 1)))
+    (should (null (crate-push l)))
+    (crate-test--list-singleton-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (null (oref (oref l next) data))))
+  ;; Test with actual data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 1)))
+    (should (null (crate-push l a)))
+    (crate-test--list-singleton-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (oref (oref l next) data) a))))
+
+
+(ert-deftest crate-test-limited-list-push-0-100 ()
+  "Test adding to the front of a vacant list of length 0."
+  ;; Test without data
+  (let ((l (crate-limited-list :max-length 100)))
+    (should (null (crate-push l)))
+    (crate-test--list-singleton-p l)
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (null (oref (oref l next) data))))
+  ;; Test with actual data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 100)))
+    (should (null (crate-push l a)))
+    (crate-test--list-singleton-p l)
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (oref (oref l next) data) a))))
+
+
+(ert-deftest crate-test-limited-list-push-1-1 ()
+  "Test adding to the front of a full list of length 1."
+  ;; Test without data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 1)))
+    (crate-push l a)
+    (should (null (crate-push l)))
+    (crate-test--list-singleton-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (null (oref (oref l next) data))))
+  ;; Test with actual data
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 1)))
+    (crate-push l a)
+    (should (null (crate-push l b)))
+    (crate-test--list-singleton-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (oref (oref l next) data) b))))
+
+
+(ert-deftest crate-test-limited-list-push-1-2 ()
+  "Test adding to the front of an almost-full list of length 1."
+  ;; Test without data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 2)))
+    (crate-push l a)
+    (should (null (crate-push l)))
+    (crate-test--list-pair-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 2))
+    (should (null (oref (oref l next) data)))
+    (should (eq (oref (oref l prev) data) a)))
+  ;; Test with actual data
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 2)))
+    (crate-push l a)
+    (should (null (crate-push l b)))
+    (crate-test--list-pair-p l)
+    (should (crate-full-p l))
+    (should (= (oref l length) 2))
+    (should (eq (oref (oref l next) data) b))
+    (should (eq (oref (oref l prev) data) a))))
+
+
+(ert-deftest crate-test-limited-list-push-1-100 ()
+  "Test adding to the front of a vacant list of length 1."
+  ;; Test without data
+  (let ((a (gensym)) (l (crate-limited-list :max-length 100)))
+    (crate-push l a)
+    (should (null (crate-push l)))
+    (crate-test--list-pair-p l)
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 2))
+    (should (null (oref (oref l next) data)))
+    (should (eq (oref (oref l prev) data) a)))
+  ;; Test with actual data
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 100)))
+    (crate-push l a)
+    (should (null (crate-push l b)))
+    (crate-test--list-pair-p l)
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 2))
+    (should (eq (oref (oref l next) data) b))
+    (should (eq (oref (oref l prev) data) a))))
+
+
+;; Length-restricted list: prune
+
+(ert-deftest crate-test-limited-list-prune-0 ()
+  "Test removing the last element of a length-restricted list or length 0."
+  (let ((l (crate-limited-list)))
+    (should-error (crate-prune l)))
+  (let ((l (crate-limited-list :max-length 100)))
+    (should-error (crate-prune l))))
+
+
+(ert-deftest crate-test-limited-list-prune-1 ()
+  "Test removing the last element of a length-restricted list or length 1."
+  (let ((a (gensym)) (l (crate-limited-list :max-length 1)))
+    (crate-enqueue l a)
+    (should (eq (crate-prune l) a))
+    (should (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should-error (crate-prune l)))
+  (let ((a (gensym)) (l (crate-limited-list :max-length 100)))
+    (crate-enqueue l a)
+    (should (eq (crate-prune l) a))
+    (should (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should-error (crate-prune l))))
+
+
+(ert-deftest crate-test-limited-list-prune-2 ()
+  "Test removing the last element of a length-restricted list or length 2."
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 2)))
+    (crate-enqueue l a)
+    (crate-enqueue l b)
+    (should (eq (crate-prune l) b))
+    (should-not (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (crate-prune l) a))
+    (should (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should-error (crate-prune l)))
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 100)))
+    (crate-enqueue l a)
+    (crate-enqueue l b)
+    (should (eq (crate-prune l) b))
+    (should-not (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (crate-prune l) a))
+    (should (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should-error (crate-prune l))))
+
+
+;; Length-restricted list: pop
+
+(ert-deftest crate-test-limited-list-pop-0 ()
+  "Test removing the first element of a length-restricted list of length 0."
+  (let ((l (crate-limited-list)))
+    (should-error (crate-pop l)))
+  (let ((l (crate-limited-list :max-length 100)))
+    (should-error (crate-pop l))))
+
+
+(ert-deftest crate-test-limited-list-pop-1 ()
+  "Test removing the first element of a length-restricted list of length 1."
+  (let ((a (gensym)) (l (crate-limited-list :max-length 1)))
+    (crate-enqueue l a)
+    (should (eq (crate-pop l) a))
+    (should (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should-error (crate-pop l)))
+  (let ((a (gensym)) (l (crate-limited-list :max-length 100)))
+    (crate-enqueue l a)
+    (should (eq (crate-pop l) a))
+    (should (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should-error (crate-pop l))))
+
+
+(ert-deftest crate-test-limited-list-pop-2 ()
+  "Test removing the first element of a length-restricted list of length 2."
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 2)))
+    (crate-enqueue l a)
+    (crate-enqueue l b)
+    (should (eq (crate-pop l) a))
+    (should-not (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (crate-pop l) b))
+    (should (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should-error (crate-pop l)))
+  (let ((a (gensym)) (b (gensym)) (l (crate-limited-list :max-length 100)))
+    (crate-enqueue l a)
+    (crate-enqueue l b)
+    (should (eq (crate-pop l) a))
+    (should-not (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 1))
+    (should (eq (crate-pop l) b))
+    (should (crate-empty-p l))
+    (should-not (crate-full-p l))
+    (should (= (oref l length) 0))
+    (should-error (crate-pop l))))
+
+
+;; Length-restricted linked list: clear
+
+(ert-deftest crate-test-limited-list-clear-0 ()
+  "Test clearing a length-restricted list of length 0."
+  (let ((l (crate-limited-list)))
+    (should (null (crate-clear l)))
+    (should (crate-empty-p l))
+    (should (crate-full-p l))
+    (should (eq (oref l prev) l))
+    (should (null (oref l data)))
+    (should (eq (oref l next) l))
+    (should (= (oref l length) 0)))
+  (dolist (max-length `(1 100 ,most-positive-fixnum))
+    (let ((l (crate-limited-list :max-length max-length)))
+      (should (null (crate-clear l)))
+      (should (crate-empty-p l))
+      (should-not (crate-full-p l))
+      (should (eq (oref l prev) l))
+      (should (null (oref l data)))
+      (should (eq (oref l next) l))
+      (should (= (oref l length) 0)))))
+
+
+(ert-deftest crate-test-limited-list-clear-1 ()
+  "Test clearing a length-restricted list of length 1."
+  (dolist (max-length `(1 100 ,most-positive-fixnum))
+    (let ((a (gensym)) (l (crate-limited-list :max-length max-length)) m)
+      (crate-enqueue l a)
+      (setq m (oref l next))
+      (should (null (crate-clear l)))
+      (should (crate-empty-p l))
+      (should-not (crate-full-p l))
+      (should (eq (oref l prev) l))
+      (should (null (oref l data)))
+      (should (eq (oref l next) l))
+      (should (= (oref l length) 0))
+      (should (null (oref m prev)))
+      (should (eq (oref m data) a))
+      (should (null (oref m next))))))
+
+
+(ert-deftest crate-test-limited-list-clear-2 ()
+  "Test clearing a length-restricted list of length 2."
+  (dolist (max-length `(2 100 ,most-positive-fixnum))
+    (let ((a (gensym)) (b (gensym))
+          (l (crate-limited-list :max-length max-length))
+          m n)
+      (dolist (i `(,a ,b))
+        (crate-enqueue l i))
+      (setq m (oref l next) n (oref m next))
+      (should (null (crate-clear l)))
+      (should (crate-empty-p l))
+      (should-not (crate-full-p l))
+      (should (eq (oref l prev) l))
+      (should (null (oref l data)))
+      (should (eq (oref l next) l))
+      (should (= (oref l length) 0))
+      (loop for i in `(,a ,b)
+            for j in `(,m ,n)
+            do (progn
+                 (should (null (oref j prev)))
+                 (should (eq (oref j data) i))
+                 (should (null (oref j next))))))))
+
+
+(ert-deftest crate-test-limited-list-clear-3 ()
+  "Test clearing a length-restricted list of length 3."
+  (dolist (max-length `(3 100 ,most-positive-fixnum))
+    (let ((a (gensym)) (b (gensym)) (c (gensym))
+          (l (crate-limited-list :max-length max-length))
+          m n o)
+      (dolist (i `(,a ,b ,c))
+        (crate-enqueue l i))
+      (setq m (oref l next) n (oref m next) o (oref n next))
+      (should (null (crate-clear l)))
+      (should (crate-empty-p l))
+      (should-not (crate-full-p l))
+      (should (eq (oref l prev) l))
+      (should (null (oref l data)))
+      (should (eq (oref l next) l))
+      (should (= (oref l length) 0))
+      (loop for i in `(,a ,b ,c)
+            for j in `(,m ,n ,o)
+            do (progn
+                 (should (null (oref j prev)))
+                 (should (eq (oref j data) i))
+                 (should (null (oref j next))))))))
 
 
 ;;; test-everything.el ends here

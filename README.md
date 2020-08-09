@@ -7,4 +7,5 @@ A selection of specialized collections for Emacs Lisp
 The `crate` package requires Emacs >= 25.1. The current version is not stable
 and the API may be subject to breaking changes.
 
-The package currently contains doubly linked lists.
+The package currently contains doubly linked lists (with and without length
+restriction).
