@@ -136,7 +136,7 @@ Breaks the links between all elements."
 
 ;; Length-restricted list
 
-(defclass crate-restricted-list (crate-linked-list)
+(defclass crate-limited-list (crate-linked-list)
   ((max-length :initarg :max-length
                :initform 0
                :type (integer 0 *)
@@ -149,29 +149,29 @@ Breaks the links between all elements."
 Drops elements once its maximum length is reached.")
 
 
-(cl-defmethod initialize-instance ((this crate-restricted-list) &optional slots)
+(cl-defmethod initialize-instance ((this crate-limited-list) &optional slots)
   (cl-call-next-method)
   (when (plist-member slots :max-length)
     (oset this max-length (plist-get slots :max-length))))
 
 
-(cl-defmethod crate-full-p ((this crate-restricted-list))
+(cl-defmethod crate-full-p ((this crate-limited-list))
   (>= (oref this length) (oref this max-length)))
 
 
-(cl-defmethod crate-prune ((this crate-restricted-list))
+(cl-defmethod crate-prune ((this crate-limited-list))
   (let ((data (cl-call-next-method)))
     (oset this length (1- (oref this length)))
     data))
 
 
-(cl-defmethod crate-pop ((this crate-restricted-list))
+(cl-defmethod crate-pop ((this crate-limited-list))
   (let ((data (cl-call-next-method)))
     (oset this length (1- (oref this length)))
     data))
 
 
-(cl-defmethod crate-push ((this crate-restricted-list) &optional data)
+(cl-defmethod crate-push ((this crate-limited-list) &optional data)
   (unless (< (oref this max-length) 1)
     (when (crate-full-p this)
       (crate-prune this))
@@ -179,7 +179,7 @@ Drops elements once its maximum length is reached.")
     (cl-call-next-method)))
 
 
-(cl-defmethod crate-enqueue ((this crate-restricted-list) &optional data)
+(cl-defmethod crate-enqueue ((this crate-limited-list) &optional data)
   (unless (< (oref this max-length) 1)
     (when (crate-full-p this)
       (crate-pop this))
