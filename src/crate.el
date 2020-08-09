@@ -49,6 +49,7 @@
          :documentation "The next linked list element."))
   "An element of a doubly linked list.")
 
+
 (cl-defmethod crate--prepend ((this crate-list-element) &optional data)
   (let ((element (crate-list-element
                   :prev (oref this prev)
@@ -58,6 +59,7 @@
       (oset (oref this prev) next element))
     (oset this prev element)))
 
+
 (cl-defmethod crate--append ((this crate-list-element) &optional data)
   (let ((element (crate-list-element
                   :prev this
@@ -66,6 +68,7 @@
     (when (oref this next)
       (oset (oref this next) prev element))
     (oset this next element)))
+
 
 (cl-defmethod crate--remove ((this crate-list-element))
   (when (oref this prev)
@@ -81,6 +84,7 @@
 
 (defclass crate-linked-list (crate-list-element) () "A doubly linked list.")
 
+
 (cl-defmethod initialize-instance ((this crate-linked-list) &optional slots)
   ;; XXX Maybe discouraging of constructor elements can be done more naturally
   (loop for slot in slots
@@ -90,18 +94,22 @@
   (oset this prev this)
   (oset this next this))
 
+
 (cl-defmethod crate-empty-p ((this crate-linked-list))
   (eq (oref this next) this))
+
 
 (cl-defmethod crate-enqueue ((this crate-linked-list) &optional data)
   "Add an element to the tail of the list."
   (crate--prepend this data)
   nil)
 
+
 (cl-defmethod crate-push ((this crate-linked-list) &optional data)
   "Add an element to the head of the list."
   (crate--append this data)
   nil)
+
 
 (cl-defmethod crate-prune ((this crate-linked-list))
   "Remove and return the last element of the list."
@@ -109,11 +117,13 @@
       (error "List empty")
     (oref (crate--remove (oref this prev)) data)))
 
+
 (cl-defmethod crate-pop ((this crate-linked-list))
   "Remove and return the first element of the list."
   (if (crate-empty-p this)
       (error "List empty")
     (oref (crate--remove (oref this next)) data)))
+
 
 (cl-defmethod crate-clear ((this crate-linked-list))
   "Remove all elements from this list.
@@ -122,6 +132,59 @@ Breaks the links between all elements."
   (while (not (crate-empty-p this))
     (crate-pop this))
   nil)
+
+
+;; Length-restricted list
+
+(defclass crate-restricted-list (crate-linked-list)
+  ((max-length :initarg :max-length
+               :initform 0
+               :type (integer 0 *)
+               :documentation "The maximum length of the list.")
+   (length :initform 0
+           :type (integer 0 *)
+           :documentation "The length of the list."))
+  "A length-restricted list.
+
+Drops elements once its maximum length is reached.")
+
+
+(cl-defmethod initialize-instance ((this crate-restricted-list) &optional slots)
+  (cl-call-next-method)
+  (when (plist-member slots :max-length)
+    (oset this max-length (plist-get slots :max-length))))
+
+
+(cl-defmethod crate-full-p ((this crate-restricted-list))
+  (>= (oref this length) (oref this max-length)))
+
+
+(cl-defmethod crate-prune ((this crate-restricted-list))
+  (let ((data (cl-call-next-method)))
+    (oset this length (1- (oref this length)))
+    data))
+
+
+(cl-defmethod crate-pop ((this crate-restricted-list))
+  (let ((data (cl-call-next-method)))
+    (oset this length (1- (oref this length)))
+    data))
+
+
+(cl-defmethod crate-push ((this crate-restricted-list) &optional data)
+  (unless (< (oref this max-length) 1)
+    (when (crate-full-p this)
+      (crate-prune this))
+    (oset this length (1+ (oref this length)))
+    (cl-call-next-method)))
+
+
+(cl-defmethod crate-enqueue ((this crate-restricted-list) &optional data)
+  (unless (< (oref this max-length) 1)
+    (when (crate-full-p this)
+      (crate-pop this))
+    (oset this length (1+ (oref this length)))
+    (cl-call-next-method)))
 
 
 (provide 'crate)
