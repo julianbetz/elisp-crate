@@ -8,7 +8,11 @@
 # Autosave files
 **/.#*
 # Personalized project settings
-.dir-locals.el
+.dir-locals-2.el
+
+# Flycheck
+flycheck_*.el
+flycheck_*.elc
 
 
 reports/clock.org
