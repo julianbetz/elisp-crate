@@ -24,6 +24,8 @@
 ;; limitations under the License.
 
 
+;; TODO Add more documentation
+
 ;;; Code:
 
 (require 'cl)
@@ -288,7 +290,45 @@ Drops elements once its maximum length is reached.")
                                    "]"))))
 
 
-(provide 'crate)
+;; History
+;; -----------------------------------------------------------------------------
 
+;; TODO Add tests
+(defclass crate-history (crate-list-iterator) () "A history of elements.")
+
+
+(cl-defmethod initialize-instance :around ((this crate-history) &optional slots)
+              (unless (plist-member slots :max-length)
+                (error "Parameter %S required" :max-length))
+              (when (plist-member slots :collection)
+                (error "Parameter %S not permissible" :collection))
+              (let ((max-length (plist-get slots :max-length)))
+                (while (plist-member slots :max-length)
+                  (remf slots :max-length))
+                (cl-call-next-method
+                 this
+                 (list*
+                  :collection
+                  (crate-limited-list :max-length max-length)
+                  slots))))
+
+
+(cl-defmethod crate-full-p ((this crate-history))
+  (crate-full-p (oref this collection)))
+
+
+(cl-defmethod crate-update-tail ((this crate-history) data)
+  "Remove all data after the current element and insert a new one at the end."
+  (when (crate-at-fringe-p this)
+    (if (oref this direction)
+        (oset this pos (oref (oref this pos) prev))
+      (oset this pos (oref (oref this pos) next))))
+  (loop until (eq (oref (oref this pos) next) (oref this collection))
+        do (crate-prune (oref this collection)))
+  (crate-enqueue (oref this collection) data)
+  (crate-advance this))
+
+
+(provide 'crate)
 
 ;;; crate.el ends here
